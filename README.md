@@ -1,54 +1,86 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
-# Vacunación COVID-19 — Teoría de Conjuntos (C#)
+namespace VacunacionCOVID
+{
+    internal class Program
+    {
+        static void Main(string[] args)
+        {
+            Console.OutputEncoding = System.Text.Encoding.UTF8;
 
-Este proyecto genera datos ficticios de una campaña de vacunación contra COVID-19 y aplica **operaciones de teoría de conjuntos** para obtener los siguientes listados:
+            // --- 1) Conjunto total de ciudadanos (50 ficticios) ---
+            var ciudadanos = new HashSet<string>();
+            for (int i = 1; i <= 50; i++)
+            {
+                ciudadanos.Add($"Ciudadano {i}");
+            }
 
-- Ciudadanos que **no se han vacunado**.
-- Ciudadanos que han recibido **ambas dosis** (aparecen en Pfizer y AstraZeneca).
-- Ciudadanos que recibieron **solo Pfizer**.
-- Ciudadanos que recibieron **solo AstraZeneca**.
+            // --- 2) Vacunados con Pfizer (ficticios) ---
+            var vacunadosPfizer = new HashSet<string>
+            {
+                "Ciudadano 1","Ciudadano 2","Ciudadano 3","Ciudadano 4","Ciudadano 5",
+                "Ciudadano 10","Ciudadano 12","Ciudadano 14","Ciudadano 15","Ciudadano 18",
+                "Ciudadano 20","Ciudadano 22","Ciudadano 25","Ciudadano 28","Ciudadano 30",
+                "Ciudadano 33","Ciudadano 35","Ciudadano 38","Ciudadano 40","Ciudadano 45"
+            };
 
-## Requisitos cumplidos
-- Conjunto de **500** ciudadanos (`Ciudadano 1` ... `Ciudadano 500`).
-- Conjunto de **75** vacunados con **Pfizer** (selección aleatoria reproducible).
-- Conjunto de **75** vacunados con **AstraZeneca** (selección aleatoria reproducible).
-- Resolución **exclusivamente en C#** usando `HashSet<T>` y operaciones de conjuntos: **Unión, Intersección, Diferencia, Complemento**.
-- Exportación de resultados a **CSV** dentro de la carpeta `output/` al ejecutar.
+            // --- 3) Vacunados con AstraZeneca (ficticios) ---
+            var vacunadosAstraZeneca = new HashSet<string>
+            {
+                "Ciudadano 3","Ciudadano 4","Ciudadano 5","Ciudadano 6","Ciudadano 7",
+                "Ciudadano 15","Ciudadano 18","Ciudadano 19","Ciudadano 22","Ciudadano 24",
+                "Ciudadano 28","Ciudadano 29","Ciudadano 30","Ciudadano 32","Ciudadano 33",
+                "Ciudadano 36","Ciudadano 38","Ciudadano 39","Ciudadano 40","Ciudadano 50"
+            };
 
-## Cómo ejecutar
+            // --- 4) Operaciones de teoría de conjuntos ---
+            // No vacunados = U - (P ∪ A)
+            var noVacunados = ciudadanos.Except(vacunadosPfizer.Union(vacunadosAstraZeneca));
 
-1. Instala **.NET SDK 8.0** o superior: <https://dotnet.microsoft.com/download>
-2. Clona este repositorio y ve a la carpeta del proyecto:
-   ```bash
-   cd VacunacionCOVID/VacunacionCOVID
-   dotnet run
-   ```
-3. Revisa la salida en consola y los archivos generados en `VacunacionCOVID/output/`.
+            // Ambas dosis = P ∩ A
+            var ambasDosis = vacunadosPfizer.Intersect(vacunadosAstraZeneca);
 
-> **Nota:** El experimento es **reproducible** porque el generador aleatorio usa una **semilla fija**. Si quieres otra simulación, cambia el valor de `seed` en `Program.cs`.
+            // Solo Pfizer = P - A
+            var soloPfizer = vacunadosPfizer.Except(vacunadosAstraZeneca);
 
-## Explicación (teoría de conjuntos)
+            // Solo AstraZeneca = A - P
+            var soloAstraZeneca = vacunadosAstraZeneca.Except(vacunadosPfizer);
 
-- **U (Universo)**: conjunto de los 500 ciudadanos.
-- **P (Pfizer)**: conjunto de los vacunados con Pfizer (75 elementos).
-- **A (AstraZeneca)**: conjunto de los vacunados con AstraZeneca (75 elementos).
+            // --- 5) Mostrar resultados ---
+            ImprimirResumen(ciudadanos.Count, vacunadosPfizer.Count, vacunadosAstraZeneca.Count,
+                            noVacunados.Count(), ambasDosis.Count(), soloPfizer.Count(), soloAstraZeneca.Count());
 
-Con esto:
-- **No vacunados** = `U − (P ∪ A)`
-- **Ambas dosis** = `P ∩ A`
-- **Solo Pfizer** = `P − A`
-- **Solo AstraZeneca** = `A − P`
+            Imprimir("Ciudadanos que NO se han vacunado", noVacunados);
+            Imprimir("Ciudadanos con AMBAS dosis", ambasDosis);
+            Imprimir("Ciudadanos con SOLO Pfizer", soloPfizer);
+            Imprimir("Ciudadanos con SOLO AstraZeneca", soloAstraZeneca);
+        }
 
-Implementado con LINQ sobre `HashSet<T>`: `Union`, `Intersect`, `Except`.
+        static void ImprimirResumen(
+            int total, int nPfizer, int nAstra, int nNoVac, int nAmbas, int nSoloPf, int nSoloAz)
+        {
+            Console.WriteLine("===================================================");
+            Console.WriteLine("   RESUMEN CAMPAÑA DE VACUNACIÓN (DATOS FICTICIOS) ");
+            Console.WriteLine("===================================================");
+            Console.WriteLine($"Total ciudadanos:                 {total}");
+            Console.WriteLine($"Vacunados con Pfizer:             {nPfizer}");
+            Console.WriteLine($"Vacunados con AstraZeneca:        {nAstra}");
+            Console.WriteLine($"Con ambas dosis (Pfizer y Astra): {nAmbas}");
+            Console.WriteLine($"Solo Pfizer:                      {nSoloPf}");
+            Console.WriteLine($"Solo AstraZeneca:                 {nSoloAz}");
+            Console.WriteLine($"No vacunados:                     {nNoVac}");
+            Console.WriteLine("===================================================\n");
+        }
 
-## Estructura
-```
-VacunacionCOVID/
- └─ VacunacionCOVID/
-    ├─ VacunacionCOVID.csproj
-    ├─ Program.cs
-    └─ output/           # Se crea al ejecutar; contiene CSVs
-```
-
-## Licencia
-Este código se entrega para uso académico. Se prohíbe su redistribución con fines de plagio.
+        static void Imprimir(string titulo, IEnumerable<string> lista)
+        {
+            Console.WriteLine($"\n--- {titulo} ---");
+            foreach (var c in lista.OrderBy(x => x))
+            {
+                Console.WriteLine(c);
+            }
+        }
+    }
+}
